@@ -11,6 +11,9 @@ define(function() {
     }
 
     AssetManager.prototype.downloadAll = function(callback) {
+        if (this.downloadQueue.length == 0) {
+            callback();
+        }
         for (var i = 0; i < this.downloadQueue.length; i++) {
             var path = this.downloadQueue[i];
             var img = new Image();
@@ -32,7 +35,7 @@ define(function() {
         }
     }
 
-    AssetManager.prototype.getImage = function(path) {
+    AssetManager.prototype.getAsset = function(path) {
         return this.cache[path];
     }
 

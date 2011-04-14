@@ -5,6 +5,7 @@ define(['asset-manager', 'timer'], function(AssetManager, Timer) {
         this.click = null;
         this.timer = new Timer();
         this.stats = new Stats();
+        this.assetManager = new AssetManager();
     }
     
     GameEngine.prototype.init = function(ctx, callback) {
@@ -12,7 +13,9 @@ define(['asset-manager', 'timer'], function(AssetManager, Timer) {
         this.ctx = ctx;
         this.startInput();
         document.body.appendChild(this.stats.domElement);
-        callback();
+        this.assetManager.downloadAll(function() {
+            callback();
+        });
     }
     
     GameEngine.prototype.start = function() {
@@ -33,12 +36,16 @@ define(['asset-manager', 'timer'], function(AssetManager, Timer) {
         });
     }
     
+    GameEngine.prototype.addEntity = function(entity) {
+        this.entities.push(entity);
+    }
+    
     GameEngine.prototype.draw = function() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.save();
         this.ctx.translate(this.ctx.canvas.width/2, this.ctx.canvas.height/2);
         for (var i = 0; i < this.entities.length; i++) {
-            this.entities[i].draw();
+            this.entities[i].draw(this.ctx);
         }
         this.ctx.restore();
     }
