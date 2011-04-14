@@ -50,8 +50,7 @@ define(['asset-manager', 'timer'], function(AssetManager, Timer) {
     }
 
     GameEngine.prototype.loop = function() {
-        this.timer.step();
-        this.clockTick = this.timer.tickDiff();
+        this.clockTick = this.timer.tick();
         this.update();
         this.draw();
         this.click = null;
