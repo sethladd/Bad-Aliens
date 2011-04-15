@@ -142,14 +142,6 @@ Entity.prototype.update = function() {
 }
 
 Entity.prototype.draw = function(ctx) {
-    ctx.drawImage(this.sprite, this.x, this.y);
-}
-
-Entity.prototype.drawCentered = function(ctx) {
-    ctx.save();
-    ctx.translate(-this.sprite.width/2, -this.sprite.height/2);
-    ctx.drawImage(this.sprite, this.x, this.y);
-    ctx.restore();
 }
 
 function Sentry(game) {
@@ -158,7 +150,7 @@ function Sentry(game) {
     this.radius = this.sprite.width / 2;
     this.radial_distance = this.y;
     this.angle = 0;
-    this.speed = 4;
+    this.speed = 2;
     this.rotationAngle = 0;
 }
 Sentry.prototype = new Entity();
@@ -173,7 +165,12 @@ Sentry.prototype.update = function() {
 }
 
 Sentry.prototype.draw = function(ctx) {
-    this.drawCentered(ctx);
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle - Math.PI/2);
+    ctx.translate(-(this.x), -(this.y));
+    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
+    ctx.restore();
 }
 
 function Earth(game) {
@@ -186,7 +183,7 @@ Earth.prototype.constructor = Earth;
 Earth.RADIUS = 134;
 
 Earth.prototype.draw = function(ctx) {
-    this.drawCentered(ctx);
+    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
 }
 
 
