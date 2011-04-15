@@ -53,6 +53,35 @@ AssetManager.prototype.isDone = function() {
     return (this.downloadQueue.length == this.successCount + this.errorCount);
 }
 
+function Animation(spriteSheet, frameWidth, frameDuration, loop) {
+    this.spriteSheet = spriteSheet;
+    this.frameWidth = frameWidth;
+    this.frameDuration = frameDuration;
+    this.frameHeight= this.spriteSheet.height;
+    this.totalTime = (this.spriteSheet.width / this.frameWidth) * this.frameDuration;
+    this.elapsedTime = 0;
+    this.loop = loop;
+}
+
+Animation.prototype.drawFrame = function(tick, ctx, x, y) {
+    this.elapsedTime += tick;
+    if (this.loop) {
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+    } else if (this.isDone()) {
+        return;
+    }
+    var index = Math.floor(this.elapsedTime / this.frameDuration);
+    var locX = x - (this.frameWidth/2);
+    var locY = y - (this.frameHeight/2);
+    ctx.drawImage(this.spriteSheet, index*this.frameWidth, 0, this.frameWidth, this.frameHeight, locX, locY, this.frameWidth, this.frameHeight);
+}
+
+Animation.prototype.isDone = function() {
+    return (this.elapsedTime >= this.totalTime);
+}
+
 function Timer() {
     this.gameTime = 0;
     this.maxStep = 0.05;
@@ -76,11 +105,19 @@ function GameEngine() {
     this.mouse = null;
     this.timer = new Timer();
     this.stats = new Stats();
+    this.surfaceWidth = null;
+    this.surfaceHeight = null;
+    this.halfSurfaceWidth = null;
+    this.halfSurfaceHeight = null;
 }
 
 GameEngine.prototype.init = function(ctx, callback) {
     console.log('game initialized');
     this.ctx = ctx;
+    this.surfaceWidth = this.ctx.canvas.width;
+    this.surfaceHeight = this.ctx.canvas.height;
+    this.halfSurfaceWidth = this.surfaceWidth/2;
+    this.halfSurfaceHeight = this.surfaceHeight/2;
     this.startInput();
     document.body.appendChild(this.stats.domElement);
 }
@@ -123,8 +160,17 @@ GameEngine.prototype.draw = function() {
 }
 
 GameEngine.prototype.update = function() {
+    var dead = [];
+    
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].update();
+        if (this.entities[i].removeFromWorld) {
+            dead.push(i);
+        }
+    }
+    
+    for (var i = 0; i < dead.length; i++) {
+        this.entities.splice(dead[i], 1);
     }
 }
 
@@ -169,6 +215,9 @@ Sentry.prototype.update = function() {
         this.x = (Math.cos(this.angle) * this.distanceFromEarthCenter);
         this.y = (Math.sin(this.angle) * this.distanceFromEarthCenter);
     }
+    if (this.game.click) {
+        this.shoot();
+    }
     Entity.prototype.update.call(this);
 }
 
@@ -179,6 +228,37 @@ Sentry.prototype.draw = function(ctx) {
     ctx.translate(-(this.x), -(this.y));
     ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
     ctx.restore();
+}
+
+Sentry.prototype.shoot = function() {
+    var bullet = new Bullet(this.game, this.x, this.y, this.angle);
+    this.game.addEntity(bullet);
+}
+
+function Bullet(game, x, y, angle) {
+    Entity.call(this, game, x, y);
+    this.angle = angle;
+    this.speed = 100;
+    this.radial_distance = 85;
+    this.sprite = assetManager.getAsset('img/bullet.png');
+    this.animation = new Animation(this.sprite, 7, 50, true);
+}
+Bullet.prototype = new Entity();
+Bullet.prototype.constructor = Bullet;
+
+Bullet.prototype.update = function() {
+    if (this.x > this.game.halfSurfaceWidth || this.x < -(this.game.halfSurfaceWidth) ||
+        this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight)) {
+            this.removeFromWorld = true;
+    } else {
+        this.x = this.radial_distance * Math.cos(this.angle);
+        this.y = this.radial_distance * Math.sin(this.angle);
+        this.radial_distance += this.speed * this.game.clockTick;
+    }
+}
+
+Bullet.prototype.draw = function(ctx) {
+    this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
 }
 
 function Earth(game) {
@@ -254,6 +334,7 @@ var ctx = canvas.getContext('2d');
 var game = new EvilAliens();
 var assetManager = new AssetManager();
 
+assetManager.queueDownload('img/bullet.png');
 assetManager.queueDownload('img/earth.png');
 assetManager.queueDownload('img/sentry.png');
 
