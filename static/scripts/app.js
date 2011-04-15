@@ -239,9 +239,9 @@ function Bullet(game, x, y, angle) {
     Entity.call(this, game, x, y);
     this.angle = angle;
     this.speed = 100;
-    this.radial_distance = 85;
+    this.radial_distance = 95;
     this.sprite = assetManager.getAsset('img/bullet.png');
-    this.animation = new Animation(this.sprite, 7, 50, true);
+    this.animation = new Animation(this.sprite, 7, 0.05, true);
 }
 Bullet.prototype = new Entity();
 Bullet.prototype.constructor = Bullet;
@@ -258,7 +258,12 @@ Bullet.prototype.update = function() {
 }
 
 Bullet.prototype.draw = function(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle + Math.PI/2);
+    ctx.translate(-this.x, -this.y);
     this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    ctx.restore();
 }
 
 function Earth(game) {
