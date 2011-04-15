@@ -73,6 +73,7 @@ function GameEngine() {
     this.entities = [];
     this.ctx = null;
     this.click = null;
+    this.mouse = null;
     this.timer = new Timer();
     this.stats = new Stats();
 }
@@ -96,9 +97,14 @@ GameEngine.prototype.start = function() {
 GameEngine.prototype.startInput = function() {
     var that = this;
     this.ctx.canvas.addEventListener("click", function(e) {
-        var x =  event.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
-        var y = event.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
+        var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
+        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
         that.click = {x:x, y:y};
+    });
+    this.ctx.canvas.addEventListener("mousemove", function(e) {
+        var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
+        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
+        that.mouse = {x:x, y:y};
     });
 }
 
@@ -145,29 +151,31 @@ Entity.prototype.draw = function(ctx) {
 }
 
 function Sentry(game) {
-    Entity.call(this, game, 0, -Earth.RADIUS + 50);
+    this.distanceFromEarthCenter = 85;
+    Entity.call(this, game, 0, this.distanceFromEarthCenter);
     this.sprite = assetManager.getAsset('img/sentry.png');
     this.radius = this.sprite.width / 2;
-    this.radial_distance = this.y;
     this.angle = 0;
-    this.speed = 2;
-    this.rotationAngle = 0;
 }
 Sentry.prototype = new Entity();
 Sentry.prototype.constructor = Sentry;
 
 Sentry.prototype.update = function() {
-    this.x = this.radial_distance * Math.cos(this.angle);
-    this.y = this.radial_distance * Math.sin(this.angle);
-    this.angle += this.speed * this.game.clockTick;
-    if (this.angle > 6.28318531) this.angle = 0;
+    if (this.game.mouse) {
+        this.angle = Math.atan2(this.game.mouse.y, this.game.mouse.x);
+        if (this.angle < 0) {
+            this.angle += Math.PI * 2;
+        }
+        this.x = (Math.cos(this.angle) * this.distanceFromEarthCenter);
+        this.y = (Math.sin(this.angle) * this.distanceFromEarthCenter);
+    }
     Entity.prototype.update.call(this);
 }
 
 Sentry.prototype.draw = function(ctx) {
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle - Math.PI/2);
+    ctx.rotate(this.angle + Math.PI/2);
     ctx.translate(-(this.x), -(this.y));
     ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
     ctx.restore();
@@ -222,15 +230,21 @@ EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
 
 EvilAliens.prototype.start = function() {
-    this.addEntity(new Earth(this));
-    this.addEntity(new Sentry(this));
+    this.sentry = new Sentry(this);
+    this.earth = new Earth(this);
+    this.addEntity(this.earth);
+    this.addEntity(this.sentry);
     GameEngine.prototype.start.call(this);
 }
 
 EvilAliens.prototype.update = function() {
-    if (this.click) {
-        
-    }
+    // if (this.click) {
+    //     var angle = Math.atan2(this.click.y, this.click.x);
+    //     if (angle < 0) {
+    //         angle += Math.PI * 2;
+    //     }
+    //     this.sentry.reorient(angle);
+    // }
     
     GameEngine.prototype.update.call(this);
 }
