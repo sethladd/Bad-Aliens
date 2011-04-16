@@ -63,7 +63,8 @@ function Animation(spriteSheet, frameWidth, frameDuration, loop) {
     this.loop = loop;
 }
 
-Animation.prototype.drawFrame = function(tick, ctx, x, y) {
+Animation.prototype.drawFrame = function(tick, ctx, x, y, scaleBy) {
+    var scaleBy = scaleBy || 1;
     this.elapsedTime += tick;
     if (this.loop) {
         if (this.isDone()) {
@@ -72,10 +73,19 @@ Animation.prototype.drawFrame = function(tick, ctx, x, y) {
     } else if (this.isDone()) {
         return;
     }
-    var index = Math.floor(this.elapsedTime / this.frameDuration);
-    var locX = x - (this.frameWidth/2);
-    var locY = y - (this.frameHeight/2);
-    ctx.drawImage(this.spriteSheet, index*this.frameWidth, 0, this.frameWidth, this.frameHeight, locX, locY, this.frameWidth, this.frameHeight);
+    var index = this.currentFrame();
+    var locX = x - (this.frameWidth/2) * scaleBy;
+    var locY = y - (this.frameHeight/2) * scaleBy;
+    ctx.drawImage(this.spriteSheet,
+                  index*this.frameWidth, 0,  // source from sheet
+                  this.frameWidth, this.frameHeight,
+                  locX, locY,
+                  this.frameWidth*scaleBy,
+                  this.frameHeight*scaleBy);
+}
+
+Animation.prototype.currentFrame = function() {
+    return Math.floor(this.elapsedTime / this.frameDuration);
 }
 
 Animation.prototype.isDone = function() {
@@ -190,7 +200,6 @@ function Entity(game, x, y) {
 }
 
 Entity.prototype.update = function() {
-    
 }
 
 Entity.prototype.draw = function(ctx) {
@@ -231,13 +240,14 @@ Sentry.prototype.draw = function(ctx) {
 }
 
 Sentry.prototype.shoot = function() {
-    var bullet = new Bullet(this.game, this.x, this.y, this.angle);
+    var bullet = new Bullet(this.game, this.x, this.y, this.angle, this.game.click);
     this.game.addEntity(bullet);
 }
 
-function Bullet(game, x, y, angle) {
+function Bullet(game, x, y, angle, explodesAt) {
     Entity.call(this, game, x, y);
     this.angle = angle;
+    this.explodesAt = explodesAt;
     this.speed = 100;
     this.radial_distance = 95;
     this.sprite = assetManager.getAsset('img/bullet.png');
@@ -250,6 +260,9 @@ Bullet.prototype.update = function() {
     if (this.x > this.game.halfSurfaceWidth || this.x < -(this.game.halfSurfaceWidth) ||
         this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight)) {
             this.removeFromWorld = true;
+    } else if (Math.abs(this.x) >= Math.abs(this.explodesAt.x) || Math.abs(this.y) >= Math.abs(this.explodesAt.y)) {
+        this.game.addEntity(new BulletExplosion(this.game, this.explodesAt.x, this.explodesAt.y));
+        this.removeFromWorld = true;
     } else {
         this.x = this.radial_distance * Math.cos(this.angle);
         this.y = this.radial_distance * Math.sin(this.angle);
@@ -264,6 +277,26 @@ Bullet.prototype.draw = function(ctx) {
     ctx.translate(-this.x, -this.y);
     this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
     ctx.restore();
+}
+
+function BulletExplosion(game, x, y) {
+	Entity.call(this, game, x, y);
+	this.sprite = assetManager.getAsset('img/explosion.png');
+	this.animation = new Animation(this.sprite, 34, 0.05);
+}
+BulletExplosion.prototype = new Entity();
+BulletExplosion.prototype.constructor = BulletExplosion;
+
+BulletExplosion.prototype.update = function() {
+	Entity.prototype.update.call(this);
+	if (this.animation.isDone()) {
+		this.removeFromWorld = true;
+	}
+}
+
+BulletExplosion.prototype.draw = function(ctx) {
+	this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y,
+	    1+(this.animation.currentFrame()/3));
 }
 
 function Earth(game) {
@@ -342,6 +375,7 @@ var assetManager = new AssetManager();
 assetManager.queueDownload('img/bullet.png');
 assetManager.queueDownload('img/earth.png');
 assetManager.queueDownload('img/sentry.png');
+assetManager.queueDownload('img/explosion.png');
 
 assetManager.downloadAll(function() {
     game.init(ctx);
