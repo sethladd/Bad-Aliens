@@ -205,6 +205,44 @@ Entity.prototype.update = function() {
 Entity.prototype.draw = function(ctx) {
 }
 
+function Alien(game, radial_distance, angle) {
+    console.log("alien added");
+    Entity.call(this, game);
+    this.radial_distance = radial_distance;
+    this.angle = angle;
+    this.speed = 100;
+    this.sprite = assetManager.getAsset('img/alien.png');
+    this.radius = this.sprite.height;
+}
+Alien.prototype = new Entity();
+Alien.prototype.constructor = Alien;
+
+Alien.prototype.update = function() {
+    this.x = this.radial_distance * Math.cos(this.angle);
+    this.y = this.radial_distance * Math.sin(this.angle);
+    this.radial_distance -= this.speed * this.game.clockTick;
+
+    if (this.hitPlanet()) {
+        this.removeFromWorld = true;
+    }
+    Entity.prototype.update.call(this);
+}
+
+Alien.prototype.hitPlanet = function() {
+    var distance_squared = ((this.x * this.x) + (this.y * this.y));
+    var radii_squared = (this.radius + Earth.RADIUS) * (this.radius + Earth.RADIUS);
+    return distance_squared < radii_squared;
+}
+
+Alien.prototype.draw = function(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle + Math.PI/2);
+    ctx.translate(-this.x, -this.y);
+    ctx.drawImage(this.sprite, this.x, this.y);
+    ctx.restore();
+}
+
 function Sentry(game) {
     this.distanceFromEarthCenter = 85;
     Entity.call(this, game, 0, this.distanceFromEarthCenter);
@@ -306,39 +344,10 @@ function Earth(game) {
 Earth.prototype = new Entity();
 Earth.prototype.constructor = Earth;
 
-Earth.RADIUS = 134;
+Earth.RADIUS = 67;
 
 Earth.prototype.draw = function(ctx) {
     ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
-}
-
-
-function Alien(game, x, y) {
-    Entity.call(this, game, x, y);
-    this.sprite = this.game.getAsset('img/alien.png');
-    this.radial_distance = radial_distance;
-    this.speed = 100;
-    this.angle = angle;
-}
-Alien.prototype = new Entity();
-Alien.prototype.constructor = Alien;
-
-Alien.prototype.update = function() {
-    Entity.prototype.update.call(this);
-    
-    this.x = this.radial_distance * Math.cos(this.angle);
-    this.y = this.radial_distance * Math.sin(this.angle);
-    this.radial_distance -= this.speed * GameEngine.clockTick;
-
-    if (this.hitPlanet()) {
-        this.remove = true;
-    }
-}
-
-Alien.prototype.hitPlanet = function() {
-    var distance_squared = ((this.x * this.x) + (this.y * this.y));
-    var radii_squared = (this.radius + Earth.RADIUS) * (this.radius + Earth.RADIUS);
-    return distance_squared < radii_squared;
 }
 
 function EvilAliens() {
@@ -364,6 +373,11 @@ EvilAliens.prototype.update = function() {
     //     this.sentry.reorient(angle);
     // }
     
+    if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 20) {
+        this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
+        this.lastAlienAddedAt = this.timer.gameTime;
+    }
+    
     GameEngine.prototype.update.call(this);
 }
 
@@ -372,6 +386,7 @@ var ctx = canvas.getContext('2d');
 var game = new EvilAliens();
 var assetManager = new AssetManager();
 
+assetManager.queueDownload('img/alien.png');
 assetManager.queueDownload('img/bullet.png');
 assetManager.queueDownload('img/earth.png');
 assetManager.queueDownload('img/sentry.png');
