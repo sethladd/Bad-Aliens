@@ -203,6 +203,17 @@ Entity.prototype.update = function() {
 }
 
 Entity.prototype.draw = function(ctx) {
+    if (this.game.showOutlines && this.radius) {
+    	ctx.beginPath();
+    	ctx.strokeStyle = "green";
+    	ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
+    	ctx.stroke();
+    	ctx.closePath();
+    }
+}
+
+Entity.prototype.drawSpriteCentered = function(ctx) {
+    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
 }
 
 function Alien(game, radial_distance, angle) {
@@ -212,7 +223,7 @@ function Alien(game, radial_distance, angle) {
     this.angle = angle;
     this.speed = 100;
     this.sprite = assetManager.getAsset('img/alien.png');
-    this.radius = this.sprite.height;
+    this.radius = this.sprite.height/2;
 }
 Alien.prototype = new Entity();
 Alien.prototype.constructor = Alien;
@@ -225,6 +236,7 @@ Alien.prototype.update = function() {
     if (this.hitPlanet()) {
         this.removeFromWorld = true;
     }
+    
     Entity.prototype.update.call(this);
 }
 
@@ -239,8 +251,14 @@ Alien.prototype.draw = function(ctx) {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle + Math.PI/2);
     ctx.translate(-this.x, -this.y);
-    ctx.drawImage(this.sprite, this.x, this.y);
+    this.drawSpriteCentered(ctx);
     ctx.restore();
+    
+    Entity.prototype.draw.call(this, ctx);
+}
+
+Alien.prototype.explode = function() {
+    this.removeFromWorld = true;
 }
 
 function Sentry(game) {
@@ -275,6 +293,8 @@ Sentry.prototype.draw = function(ctx) {
     ctx.translate(-(this.x), -(this.y));
     ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
     ctx.restore();
+    
+    Entity.prototype.draw.call(this, ctx);
 }
 
 Sentry.prototype.shoot = function() {
@@ -286,7 +306,7 @@ function Bullet(game, x, y, angle, explodesAt) {
     Entity.call(this, game, x, y);
     this.angle = angle;
     this.explodesAt = explodesAt;
-    this.speed = 100;
+    this.speed = 250;
     this.radial_distance = 95;
     this.sprite = assetManager.getAsset('img/bullet.png');
     this.animation = new Animation(this.sprite, 7, 0.05, true);
@@ -315,26 +335,51 @@ Bullet.prototype.draw = function(ctx) {
     ctx.translate(-this.x, -this.y);
     this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
     ctx.restore();
+    
+    Entity.prototype.draw.call(this, ctx);
 }
 
 function BulletExplosion(game, x, y) {
 	Entity.call(this, game, x, y);
 	this.sprite = assetManager.getAsset('img/explosion.png');
 	this.animation = new Animation(this.sprite, 34, 0.05);
+	this.radius = this.animation.frameWidth / 2;
 }
 BulletExplosion.prototype = new Entity();
 BulletExplosion.prototype.constructor = BulletExplosion;
 
 BulletExplosion.prototype.update = function() {
 	Entity.prototype.update.call(this);
+	
 	if (this.animation.isDone()) {
 		this.removeFromWorld = true;
+		return;
+	}
+	
+	this.radius = (this.animation.frameWidth/2) * this.scaleFactor();
+	
+	for (var i = 0; i < this.game.entities.length; i++) {
+	    var alien = this.game.entities[i];
+	    if (alien instanceof Alien && this.isCaughtInExplosion(alien)) {
+            alien.explode();
+	    }
 	}
 }
 
+BulletExplosion.prototype.isCaughtInExplosion = function(alien) {
+    var distance_squared = (((this.x - alien.x) * (this.x - alien.x)) + ((this.y - alien.y) * (this.y - alien.y)));
+    var radii_squared = (this.radius + alien.radius) * (this.radius + alien.radius);
+    return distance_squared < radii_squared;
+}
+
+BulletExplosion.prototype.scaleFactor = function() {
+    return 1 + (this.animation.currentFrame() / 3);
+}
+
 BulletExplosion.prototype.draw = function(ctx) {
-	this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y,
-	    1+(this.animation.currentFrame()/3));
+	this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.scaleFactor());
+	
+    Entity.prototype.draw.call(this, ctx);
 }
 
 function Earth(game) {
@@ -352,6 +397,7 @@ Earth.prototype.draw = function(ctx) {
 
 function EvilAliens() {
     GameEngine.call(this);
+    this.showOutlines = true;
 }
 EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
@@ -373,12 +419,16 @@ EvilAliens.prototype.update = function() {
     //     this.sentry.reorient(angle);
     // }
     
-    if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 20) {
+    if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 5) {
         this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
         this.lastAlienAddedAt = this.timer.gameTime;
     }
     
     GameEngine.prototype.update.call(this);
+}
+
+EvilAliens.prototype.draw = function() {
+    GameEngine.prototype.draw.call(this);
 }
 
 var canvas = document.getElementById('surface');
