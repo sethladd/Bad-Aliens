@@ -419,7 +419,7 @@ EvilAliens.prototype.update = function() {
     //     this.sentry.reorient(angle);
     // }
     
-    if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 5) {
+    if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
         this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
         this.lastAlienAddedAt = this.timer.gameTime;
     }
