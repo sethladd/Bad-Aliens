@@ -148,7 +148,7 @@ GameEngine.prototype.startInput = function() {
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
         that.click = {x:x, y:y};
         e.stopPropagation();
-		e.preventDefault();
+        e.preventDefault();
     });
     this.ctx.canvas.addEventListener("mousemove", function(e) {
         var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
@@ -206,11 +206,11 @@ Entity.prototype.update = function() {
 
 Entity.prototype.draw = function(ctx) {
     if (this.game.showOutlines && this.radius) {
-    	ctx.beginPath();
-    	ctx.strokeStyle = "green";
-    	ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
-    	ctx.stroke();
-    	ctx.closePath();
+        ctx.beginPath();
+        ctx.strokeStyle = "green";
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
+        ctx.stroke();
+        ctx.closePath();
     }
 }
 
@@ -342,30 +342,30 @@ Bullet.prototype.draw = function(ctx) {
 }
 
 function BulletExplosion(game, x, y) {
-	Entity.call(this, game, x, y);
-	this.sprite = assetManager.getAsset('img/explosion.png');
-	this.animation = new Animation(this.sprite, 34, 0.05);
-	this.radius = this.animation.frameWidth / 2;
+    Entity.call(this, game, x, y);
+    this.sprite = assetManager.getAsset('img/explosion.png');
+    this.animation = new Animation(this.sprite, 34, 0.05);
+    this.radius = this.animation.frameWidth / 2;
 }
 BulletExplosion.prototype = new Entity();
 BulletExplosion.prototype.constructor = BulletExplosion;
 
 BulletExplosion.prototype.update = function() {
-	Entity.prototype.update.call(this);
-	
-	if (this.animation.isDone()) {
-		this.removeFromWorld = true;
-		return;
-	}
-	
-	this.radius = (this.animation.frameWidth/2) * this.scaleFactor();
-	
-	for (var i = 0; i < this.game.entities.length; i++) {
-	    var alien = this.game.entities[i];
-	    if (alien instanceof Alien && this.isCaughtInExplosion(alien)) {
+    Entity.prototype.update.call(this);
+    
+    if (this.animation.isDone()) {
+        this.removeFromWorld = true;
+        return;
+    }
+    
+    this.radius = (this.animation.frameWidth/2) * this.scaleFactor();
+    
+    for (var i = 0; i < this.game.entities.length; i++) {
+        var alien = this.game.entities[i];
+        if (alien instanceof Alien && this.isCaughtInExplosion(alien)) {
             alien.explode();
-	    }
-	}
+        }
+    }
 }
 
 BulletExplosion.prototype.isCaughtInExplosion = function(alien) {
@@ -379,8 +379,8 @@ BulletExplosion.prototype.scaleFactor = function() {
 }
 
 BulletExplosion.prototype.draw = function(ctx) {
-	this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.scaleFactor());
-	
+    this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.scaleFactor());
+    
     Entity.prototype.draw.call(this, ctx);
 }
 
