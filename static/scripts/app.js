@@ -137,6 +137,8 @@ GameEngine.prototype.startInput = function() {
         var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
         that.click = {x:x, y:y};
+        e.stopPropagation();
+		e.preventDefault();
     });
     this.ctx.canvas.addEventListener("mousemove", function(e) {
         var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
