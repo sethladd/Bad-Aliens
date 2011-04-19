@@ -193,7 +193,6 @@ GameEngine.prototype.update = function() {
 }
 
 GameEngine.prototype.loop = function() {
-    var entitiesCount = this.entities.length;
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
