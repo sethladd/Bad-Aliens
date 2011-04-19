@@ -275,6 +275,27 @@ Alien.prototype.draw = function(ctx) {
 
 Alien.prototype.explode = function() {
     this.removeFromWorld = true;
+    this.game.addEntity(new AlienExplosion(this.game, this.x, this.y));
+}
+
+function AlienExplosion(game, x, y) {
+    Entity.call(this, game, x, y);
+    this.animation = new Animation(assetManager.getAsset('img/alien-explosion.png'), 69, 0.05);
+    this.radius = this.animation.frameWidth / 2;
+}
+AlienExplosion.prototype = new Entity();
+AlienExplosion.prototype.constructor = AlienExplosion;
+
+AlienExplosion.prototype.update = function() {
+    Entity.prototype.update.call(this);
+    if (this.animation.isDone()) {
+        this.removeFromWorld = true;
+    }
+}
+
+AlienExplosion.prototype.draw = function(ctx) {
+    Entity.prototype.draw.call(this, ctx);
+    this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
 }
 
 function Sentry(game) {
@@ -414,7 +435,7 @@ Earth.prototype.draw = function(ctx) {
 
 function EvilAliens() {
     GameEngine.call(this);
-    this.showOutlines = true;
+    //this.showOutlines = true;
     this.lives = 10;
     this.score = 0;
 }
@@ -430,14 +451,6 @@ EvilAliens.prototype.start = function() {
 }
 
 EvilAliens.prototype.update = function() {
-    // if (this.click) {
-    //     var angle = Math.atan2(this.click.y, this.click.x);
-    //     if (angle < 0) {
-    //         angle += Math.PI * 2;
-    //     }
-    //     this.sentry.reorient(angle);
-    // }
-    
     GameEngine.prototype.update.call(this);
     
     if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
@@ -467,6 +480,7 @@ var ctx = canvas.getContext('2d');
 var game = new EvilAliens();
 var assetManager = new AssetManager();
 
+assetManager.queueDownload('img/alien-explosion.png');
 assetManager.queueDownload('img/alien.png');
 assetManager.queueDownload('img/bullet.png');
 assetManager.queueDownload('img/earth.png');
