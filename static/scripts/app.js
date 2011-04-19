@@ -185,7 +185,7 @@ GameEngine.prototype.update = function() {
         }
     }
     
-    for (var i = 0; i < this.entities.length; i++) {
+    for (var i = this.entities.length-1; i >= 0; --i) {
         if (this.entities[i].removeFromWorld) {
             this.entities.splice(i, 1);
         }
