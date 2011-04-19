@@ -236,7 +236,7 @@ function Alien(game, radial_distance, angle) {
     this.radial_distance = radial_distance;
     this.angle = angle;
     this.speed = 100;
-    this.sprite = assetManager.getAsset('img/alien.png');
+    this.sprite = ASSET_MANAGER.getAsset('img/alien.png');
     this.radius = this.sprite.height/2;
 }
 Alien.prototype = new Entity();
@@ -279,7 +279,7 @@ Alien.prototype.explode = function() {
 
 function AlienExplosion(game, x, y) {
     Entity.call(this, game, x, y);
-    this.animation = new Animation(assetManager.getAsset('img/alien-explosion.png'), 69, 0.05);
+    this.animation = new Animation(ASSET_MANAGER.getAsset('img/alien-explosion.png'), 69, 0.05);
     this.radius = this.animation.frameWidth / 2;
 }
 AlienExplosion.prototype = new Entity();
@@ -300,7 +300,7 @@ AlienExplosion.prototype.draw = function(ctx) {
 function Sentry(game) {
     this.distanceFromEarthCenter = 85;
     Entity.call(this, game, 0, this.distanceFromEarthCenter);
-    this.sprite = assetManager.getAsset('img/sentry.png');
+    this.sprite = ASSET_MANAGER.getAsset('img/sentry.png');
     this.radius = this.sprite.width / 2;
     this.angle = 0;
 }
@@ -344,7 +344,7 @@ function Bullet(game, x, y, angle, explodesAt) {
     this.explodesAt = explodesAt;
     this.speed = 250;
     this.radial_distance = 95;
-    this.sprite = assetManager.getAsset('img/bullet.png');
+    this.sprite = ASSET_MANAGER.getAsset('img/bullet.png');
     this.animation = new Animation(this.sprite, 7, 0.05, true);
 }
 Bullet.prototype = new Entity();
@@ -376,7 +376,7 @@ Bullet.prototype.draw = function(ctx) {
 
 function BulletExplosion(game, x, y) {
     Entity.call(this, game, x, y);
-    this.sprite = assetManager.getAsset('img/explosion.png');
+    this.sprite = ASSET_MANAGER.getAsset('img/explosion.png');
     this.animation = new Animation(this.sprite, 34, 0.05);
     this.radius = this.animation.frameWidth / 2;
 }
@@ -421,7 +421,7 @@ BulletExplosion.prototype.draw = function(ctx) {
 
 function Earth(game) {
     Entity.call(this, game, 0, 0);
-    this.sprite = assetManager.getAsset('img/earth.png');
+    this.sprite = ASSET_MANAGER.getAsset('img/earth.png');
 }
 Earth.prototype = new Entity();
 Earth.prototype.constructor = Earth;
@@ -465,7 +465,14 @@ EvilAliens.prototype.update = function() {
 EvilAliens.prototype.draw = function() {
     GameEngine.prototype.draw.call(this, function(game) {
         game.drawScore();
+        game.drawLives();
     });
+}
+
+EvilAliens.prototype.drawLives = function() {
+    this.ctx.fillStyle = "red";
+    this.ctx.font = "bold 2em Arial";
+    this.ctx.fillText("Lives: " + this.lives, -this.ctx.canvas.width/2 + 50, this.ctx.canvas.height/2 - 80);
 }
 
 EvilAliens.prototype.drawScore = function() {
@@ -477,16 +484,16 @@ EvilAliens.prototype.drawScore = function() {
 var canvas = document.getElementById('surface');
 var ctx = canvas.getContext('2d');
 var game = new EvilAliens();
-var assetManager = new AssetManager();
+var ASSET_MANAGER = new AssetManager();
 
-assetManager.queueDownload('img/alien-explosion.png');
-assetManager.queueDownload('img/alien.png');
-assetManager.queueDownload('img/bullet.png');
-assetManager.queueDownload('img/earth.png');
-assetManager.queueDownload('img/sentry.png');
-assetManager.queueDownload('img/explosion.png');
+ASSET_MANAGER.queueDownload('img/alien-explosion.png');
+ASSET_MANAGER.queueDownload('img/alien.png');
+ASSET_MANAGER.queueDownload('img/bullet.png');
+ASSET_MANAGER.queueDownload('img/earth.png');
+ASSET_MANAGER.queueDownload('img/sentry.png');
+ASSET_MANAGER.queueDownload('img/explosion.png');
 
-assetManager.downloadAll(function() {
+ASSET_MANAGER.downloadAll(function() {
     game.init(ctx);
     game.start();
 });
