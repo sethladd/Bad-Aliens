@@ -1,0 +1,11 @@
+* Finish refactoring into screens
+* Game Over Screen
+* Refactor entities from Game Engine over to EntitiesScreen
+* Record high scores
+* Display high scores on Game Over screen
+* Display "Play Again?" on Game Over screen, handle button clicks for Yes or No
+* Create New Game screen
+* Display "start" on New Game screen
+* Display high scores on New Game screen
+* Add audio
+* Refactor into multiple files
