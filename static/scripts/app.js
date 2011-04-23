@@ -1,3 +1,9 @@
+soundManager.url = 'swf/';
+soundManager.flashVersion = 9;
+soundManager.waitForWindowLoad = true;
+soundManager.debugFlash = false;
+soundManager.debugMode = false;
+
 window.requestAnimFrame = (function(){
       return  window.requestAnimationFrame       ||
               window.webkitRequestAnimationFrame ||
@@ -14,16 +20,24 @@ function AssetManager() {
     this.errorCount = 0;
     this.cache = {};
     this.downloadQueue = [];
+    this.soundsQueue = [];
 }
 
 AssetManager.prototype.queueDownload = function(path) {
     this.downloadQueue.push(path);
 }
 
+AssetManager.prototype.queueSound = function(id, path) {
+    this.soundsQueue.push({id: id, path: path});
+}
+
 AssetManager.prototype.downloadAll = function(callback) {
-    if (this.downloadQueue.length == 0) {
+    if (this.downloadQueue.length === 0 && this.soundsQueue.length === 0) {
         callback();
     }
+    
+    this.downloadSounds(callback);
+    
     for (var i = 0; i < this.downloadQueue.length; i++) {
         var path = this.downloadQueue[i];
         var img = new Image();
@@ -45,12 +59,43 @@ AssetManager.prototype.downloadAll = function(callback) {
     }
 }
 
+AssetManager.prototype.downloadSounds = function(callback) {
+    var that = this;
+    soundManager.onready(function() {
+        for (var i = 0; i < that.soundsQueue.length; i++) {
+            that.downloadSound(that.soundsQueue[i].id, that.soundsQueue[i].path, callback);
+        }
+    });
+    soundManager.ontimeout(function() {
+        console.log('SM2 did not start');
+    });
+}
+
+AssetManager.prototype.downloadSound = function(id, path, callback) {
+    var that = this;
+    this.cache[path] = soundManager.createSound({
+        id: id,
+        autoLoad: true,
+        url: path,
+        onload: function() {
+            that.successCount += 1;
+            if (that.isDone()) {
+                callback();
+            }
+        }
+    });
+}
+
+AssetManager.prototype.getSound = function(path) {
+    return this.cache[path];
+}
+
 AssetManager.prototype.getAsset = function(path) {
     return this.cache[path];
 }
 
 AssetManager.prototype.isDone = function() {
-    return (this.downloadQueue.length == this.successCount + this.errorCount);
+    return ((this.downloadQueue.length + this.soundsQueue.length) == this.successCount + this.errorCount);
 }
 
 function Animation(spriteSheet, frameWidth, frameDuration, loop) {
@@ -336,6 +381,7 @@ Sentry.prototype.draw = function(ctx) {
 Sentry.prototype.shoot = function() {
     var bullet = new Bullet(this.game, this.x, this.y, this.angle, this.game.click);
     this.game.addEntity(bullet);
+    ASSET_MANAGER.getSound('audio/bullet.mp3').play();
 }
 
 function Bullet(game, x, y, angle, explodesAt) {
@@ -492,6 +538,9 @@ ASSET_MANAGER.queueDownload('img/bullet.png');
 ASSET_MANAGER.queueDownload('img/earth.png');
 ASSET_MANAGER.queueDownload('img/sentry.png');
 ASSET_MANAGER.queueDownload('img/explosion.png');
+ASSET_MANAGER.queueSound('alien-boom', 'audio/alien_boom.mp3');
+ASSET_MANAGER.queueSound('bullet-boom', 'audio/bullet_boom.mp3');
+ASSET_MANAGER.queueSound('bullet', 'audio/bullet.mp3');
 
 ASSET_MANAGER.downloadAll(function() {
     game.init(ctx);
