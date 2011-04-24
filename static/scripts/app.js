@@ -320,6 +320,7 @@ Alien.prototype.draw = function(ctx) {
 Alien.prototype.explode = function() {
     this.removeFromWorld = true;
     this.game.addEntity(new AlienExplosion(this.game, this.x, this.y));
+    ASSET_MANAGER.getSound('audio/alien_boom.mp3').play();
 }
 
 function AlienExplosion(game, x, y) {
@@ -400,6 +401,7 @@ Bullet.prototype.update = function() {
     if (this.outsideScreen()) {
             this.removeFromWorld = true;
     } else if (Math.abs(this.x) >= Math.abs(this.explodesAt.x) || Math.abs(this.y) >= Math.abs(this.explodesAt.y)) {
+        ASSET_MANAGER.getSound('audio/bullet_boom.mp3').play();
         this.game.addEntity(new BulletExplosion(this.game, this.explodesAt.x, this.explodesAt.y));
         this.removeFromWorld = true;
     } else {
