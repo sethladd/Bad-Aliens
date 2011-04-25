@@ -1,6 +1,5 @@
 soundManager.url = 'swf/';
 soundManager.flashVersion = 9;
-soundManager.waitForWindowLoad = true;
 soundManager.debugFlash = false;
 soundManager.debugMode = false;
 
@@ -43,6 +42,7 @@ AssetManager.prototype.downloadAll = function(callback) {
         var img = new Image();
         var that = this;
         img.addEventListener("load", function() {
+            console.log(this.src + ' is loaded');
             that.successCount += 1;
             if (that.isDone()) {
                 callback();
@@ -62,6 +62,7 @@ AssetManager.prototype.downloadAll = function(callback) {
 AssetManager.prototype.downloadSounds = function(callback) {
     var that = this;
     soundManager.onready(function() {
+        console.log('soundManager ready');
         for (var i = 0; i < that.soundsQueue.length; i++) {
             that.downloadSound(that.soundsQueue[i].id, that.soundsQueue[i].path, callback);
         }
@@ -78,6 +79,7 @@ AssetManager.prototype.downloadSound = function(id, path, callback) {
         autoLoad: true,
         url: path,
         onload: function() {
+            console.log(this.id + ' is loaded');
             that.successCount += 1;
             if (that.isDone()) {
                 callback();
