@@ -211,12 +211,7 @@ Alien.prototype.update = function() {
 }
 
 Alien.prototype.draw = function(ctx) {
-    // ctx.save();
-    //     ctx.translate(this.x, this.y);
-    //     ctx.rotate(this.angle + Math.PI/2);
-    //     ctx.translate(-this.x, -this.y);
     this.drawSpriteCentered(ctx);
-    // ctx.restore();
     
     Entity.prototype.draw.call(this, ctx);
 }

@@ -283,11 +283,28 @@ function Alien(game, radial_distance, angle) {
     this.radial_distance = radial_distance;
     this.angle = angle;
     this.speed = 100;
-    this.sprite = ASSET_MANAGER.getAsset('img/alien.png');
+    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'));
     this.radius = this.sprite.height/2;
 }
 Alien.prototype = new Entity();
 Alien.prototype.constructor = Alien;
+
+Alien.prototype.rotateAndCache = function(image) {
+    var offscreenCanvas = document.createElement('canvas');
+    var size = Math.max(image.width, image.height);
+    offscreenCanvas.width = size;
+    offscreenCanvas.height = size;
+    var offscreenCtx = offscreenCanvas.getContext('2d');
+    offscreenCtx.save();
+    offscreenCtx.translate(size/2, size/2);
+    offscreenCtx.rotate(this.angle + Math.PI/2);
+    offscreenCtx.translate(0,0);
+    offscreenCtx.drawImage(image, -(image.width/2), -(image.height/2));
+    offscreenCtx.restore();
+    //offscreenCtx.strokeStyle = "red";
+    //offscreenCtx.strokeRect(0,0,size,size);
+    return offscreenCanvas;
+}
 
 Alien.prototype.update = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
@@ -309,12 +326,7 @@ Alien.prototype.hitPlanet = function() {
 }
 
 Alien.prototype.draw = function(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle + Math.PI/2);
-    ctx.translate(-this.x, -this.y);
     this.drawSpriteCentered(ctx);
-    ctx.restore();
     
     Entity.prototype.draw.call(this, ctx);
 }
