@@ -1,28 +1,12 @@
-window.requestAnimFrame = (function(){
-      return  window.requestAnimationFrame       ||
-              window.webkitRequestAnimationFrame ||
-              window.mozRequestAnimationFrame    ||
-              window.oRequestAnimationFrame      ||
-              window.msRequestAnimationFrame     ||
-              function(/* function */ callback, /* DOMElement */ element){
-                window.setTimeout(callback, 1000 / 60);
-              };
-})();
-
 function AssetManager() {
     this.successCount = 0;
     this.errorCount = 0;
     this.cache = {};
     this.downloadQueue = [];
-    this.soundsQueue = [];
 }
 
 AssetManager.prototype.queueDownload = function(path) {
     this.downloadQueue.push(path);
-}
-
-AssetManager.prototype.queueSound = function(id, path) {
-    this.soundsQueue.push({id: id, path: path});
 }
 
 AssetManager.prototype.downloadAll = function(callback) {
@@ -57,151 +41,20 @@ AssetManager.prototype.getAsset = function(path) {
 }
 
 AssetManager.prototype.isDone = function() {
-    return ((this.downloadQueue.length + this.soundsQueue.length) == this.successCount + this.errorCount);
-}
-
-function GameEngine() {
-    this.entities = [];
-    this.ctx = null;
-    this.click = null;
-    this.mouse = null;
-    this.surfaceWidth = null;
-    this.surfaceHeight = null;
-    this.halfSurfaceWidth = null;
-    this.halfSurfaceHeight = null;
-}
-
-GameEngine.prototype.init = function(ctx) {
-    console.log('game initialized');
-    this.ctx = ctx;
-    this.surfaceWidth = this.ctx.canvas.width;
-    this.surfaceHeight = this.ctx.canvas.height;
-    this.halfSurfaceWidth = this.surfaceWidth/2;
-    this.halfSurfaceHeight = this.surfaceHeight/2;
-}
-
-GameEngine.prototype.start = function() {
-    console.log("starting game");
-    var that = this;
-    (function gameLoop() {
-        that.loop();
-        requestAnimFrame(gameLoop, that.ctx.canvas);
-    })();
-}
-
-GameEngine.prototype.addEntity = function(entity) {
-    this.entities.push(entity);
-}
-
-GameEngine.prototype.draw = function(callback) {
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.ctx.save();
-    this.ctx.translate(this.ctx.canvas.width/2, this.ctx.canvas.height/2);
-    for (var i = 0; i < this.entities.length; i++) {
-        this.entities[i].draw(this.ctx);
-    }
-    if (callback) {
-        callback(this);
-    }
-    this.ctx.restore();
-}
-
-GameEngine.prototype.update = function() {
-    var entitiesCount = this.entities.length;
-    
-    for (var i = 0; i < entitiesCount; i++) {
-        var entity = this.entities[i];
-        
-        if (!entity.removeFromWorld) {
-            entity.update();
-        }
-    }
-    
-    for (var i = this.entities.length-1; i >= 0; --i) {
-        if (this.entities[i].removeFromWorld) {
-            this.entities.splice(i, 1);
-        }
-    }
-}
-
-GameEngine.prototype.loop = function() {
-    this.update();
-    this.draw();
-    this.click = null;
-}
-
-function Entity(game, x, y) {
-    this.game = game;
-    this.x = x;
-    this.y = y;
-    this.removeFromWorld = false;
-}
-
-Entity.prototype.update = function() {
-}
-
-Entity.prototype.draw = function(ctx) {
-    if (this.game.showOutlines && this.radius) {
-        ctx.beginPath();
-        ctx.strokeStyle = "green";
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
-        ctx.stroke();
-        ctx.closePath();
-    }
-}
-
-Entity.prototype.drawSpriteCentered = function(ctx) {
-    var x = this.x - this.sprite.width/2;
-    var y = this.y - this.sprite.height/2;
-    ctx.drawImage(this.sprite, x, y);
-}
-
-Entity.prototype.outsideScreen = function() {
-    return (this.x > this.game.halfSurfaceWidth || this.x < -(this.game.halfSurfaceWidth) ||
-        this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight));
-}
-
-function Earth(game) {
-    Entity.call(this, game, 0, 0);
-    this.sprite = ASSET_MANAGER.getAsset('img/earth.png');
-}
-Earth.prototype = new Entity();
-Earth.prototype.constructor = Earth;
-
-Earth.RADIUS = 67;
-
-Earth.prototype.draw = function(ctx) {
-    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
-}
-
-function EvilAliens() {
-    GameEngine.call(this);
-}
-EvilAliens.prototype = new GameEngine();
-EvilAliens.prototype.constructor = EvilAliens;
-
-EvilAliens.prototype.start = function() {
-    this.earth = new Earth(this);
-    this.addEntity(this.earth);
-    GameEngine.prototype.start.call(this);
-}
-
-EvilAliens.prototype.update = function() {
-    GameEngine.prototype.update.call(this);
-}
-
-EvilAliens.prototype.draw = function() {
-    GameEngine.prototype.draw.call(this);
+    return (this.downloadQueue.length == this.successCount + this.errorCount);
 }
 
 var canvas = document.getElementById('surface');
 var ctx = canvas.getContext('2d');
-var game = new EvilAliens();
 var ASSET_MANAGER = new AssetManager();
 
 ASSET_MANAGER.queueDownload('img/earth.png');
 
 ASSET_MANAGER.downloadAll(function() {
-    game.init(ctx);
-    game.start();
+    var x = 0, y = 0;
+    var sprite = ASSET_MANAGER.getAsset('img/earth.png');
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.drawImage(sprite, x - sprite.width/2, y - sprite.height/2);
+    ctx.restore();
 });
