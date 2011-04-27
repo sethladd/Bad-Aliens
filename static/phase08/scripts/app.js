@@ -190,18 +190,7 @@ Entity.prototype.outsideScreen = function() {
         this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight));
 }
 
-function Alien(game, radial_distance, angle) {
-    Entity.call(this, game);
-    this.radial_distance = radial_distance;
-    this.angle = angle;
-    this.speed = 100;
-    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'));
-    this.radius = this.sprite.height/2;
-}
-Alien.prototype = new Entity();
-Alien.prototype.constructor = Alien;
-
-Alien.prototype.rotateAndCache = function(image) {
+Entity.prototype.rotateAndCache = function(image, angle) {
     var offscreenCanvas = document.createElement('canvas');
     var size = Math.max(image.width, image.height);
     offscreenCanvas.width = size;
@@ -209,7 +198,7 @@ Alien.prototype.rotateAndCache = function(image) {
     var offscreenCtx = offscreenCanvas.getContext('2d');
     offscreenCtx.save();
     offscreenCtx.translate(size/2, size/2);
-    offscreenCtx.rotate(this.angle + Math.PI/2);
+    offscreenCtx.rotate(angle + Math.PI/2);
     offscreenCtx.translate(0,0);
     offscreenCtx.drawImage(image, -(image.width/2), -(image.height/2));
     offscreenCtx.restore();
@@ -217,6 +206,17 @@ Alien.prototype.rotateAndCache = function(image) {
     //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 }
+
+function Alien(game, radial_distance, angle) {
+    Entity.call(this, game);
+    this.radial_distance = radial_distance;
+    this.angle = angle;
+    this.speed = 100;
+    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'), this.angle);
+    this.radius = this.sprite.height/2;
+}
+Alien.prototype = new Entity();
+Alien.prototype.constructor = Alien;
 
 Alien.prototype.update = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
@@ -279,7 +279,7 @@ function Bullet(game, x, y, angle, explodesAt) {
     this.explodesAt = explodesAt;
     this.speed = 250;
     this.radial_distance = 95;
-    this.sprite = ASSET_MANAGER.getAsset('img/bullet-single.png');
+    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/bullet-single.png'), this.angle);
 }
 Bullet.prototype = new Entity();
 Bullet.prototype.constructor = Bullet;
@@ -295,12 +295,7 @@ Bullet.prototype.update = function() {
 }
 
 Bullet.prototype.draw = function(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle + Math.PI/2);
-    ctx.translate(-this.x, -this.y);
     this.drawSpriteCentered(ctx);
-    ctx.restore();
     
     Entity.prototype.draw.call(this, ctx);
 }
