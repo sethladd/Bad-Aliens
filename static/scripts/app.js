@@ -79,7 +79,7 @@ AssetManager.prototype.downloadSound = function(id, path, callback) {
         autoLoad: true,
         url: path,
         onload: function() {
-            console.log(this.id + ' is loaded');
+            console.log(this.url + ' is loaded');
             that.successCount += 1;
             if (that.isDone()) {
                 callback();

@@ -6,6 +6,11 @@ api_version: 1
 #default_expiration: "30d"
 
 handlers:
+    
+- url: /(.*\.appcache)
+  static_files: static/\1
+  mime_type: text/cache-manifest
+  upload: static/(.*\.appcache)
 
 - url: (.*)/
   static_files: static\1/index.html
