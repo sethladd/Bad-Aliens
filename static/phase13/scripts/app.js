@@ -161,6 +161,7 @@ function GameEngine() {
     this.click = null;
     this.mouse = null;
     this.timer = new Timer();
+    this.stats = new Stats();
     this.surfaceWidth = null;
     this.surfaceHeight = null;
     this.halfSurfaceWidth = null;
@@ -175,6 +176,7 @@ GameEngine.prototype.init = function(ctx) {
     this.halfSurfaceWidth = this.surfaceWidth/2;
     this.halfSurfaceHeight = this.surfaceHeight/2;
     this.startInput();
+    document.body.appendChild(this.stats.domElement);
 }
 
 GameEngine.prototype.start = function() {
@@ -242,6 +244,7 @@ GameEngine.prototype.loop = function() {
     this.update();
     this.draw();
     this.click = null;
+    this.stats.update();
 }
 
 function Entity(game, x, y) {
