@@ -180,13 +180,9 @@ Entity.prototype.rotateAndCache = function(image) {
     offscreenCanvas.width = size;
     offscreenCanvas.height = size;
     var offscreenCtx = offscreenCanvas.getContext('2d');
-    offscreenCtx.save();
     offscreenCtx.translate(size/2, size/2);
     offscreenCtx.rotate(this.angle + Math.PI/2);
     offscreenCtx.drawImage(image, -(image.width/2), -(image.height/2));
-    offscreenCtx.restore();
-    //offscreenCtx.strokeStyle = "red";
-    //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 }
 

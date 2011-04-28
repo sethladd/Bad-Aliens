@@ -221,7 +221,6 @@ Earth.prototype.draw = function(ctx) {
 
 function EvilAliens() {
     GameEngine.call(this);
-    this.showOutlines = true;
 }
 EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
