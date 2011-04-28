@@ -354,8 +354,7 @@ Sentry.prototype.draw = function(ctx) {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle + Math.PI/2);
-    ctx.translate(-(this.x), -(this.y));
-    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
+    ctx.drawImage(this.sprite, -this.sprite.width/2, -this.sprite.height/2);
     ctx.restore();
     
     Entity.prototype.draw.call(this, ctx);
