@@ -179,13 +179,18 @@ function Alien(game, radial_distance, angle) {
     this.speed = 100;
     this.sprite = ASSET_MANAGER.getAsset('img/alien.png');
     this.radius = this.sprite.height/2;
+    this.updatePosition();
 }
 Alien.prototype = new Entity();
 Alien.prototype.constructor = Alien;
 
-Alien.prototype.update = function() {
+Alien.prototype.updatePosition = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
     this.y = this.radial_distance * Math.sin(this.angle);
+}
+
+Alien.prototype.update = function() {
+    this.updatePosition();
     this.radial_distance -= this.speed * this.game.clockTick;
     
     Entity.prototype.update.call(this);
@@ -195,8 +200,7 @@ Alien.prototype.draw = function(ctx) {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle + Math.PI/2);
-    ctx.translate(-this.x, -this.y);
-    this.drawSpriteCentered(ctx);
+    ctx.drawImage(this.sprite, -this.sprite.width/2, -this.sprite.height/2);
     ctx.restore();
     
     Entity.prototype.draw.call(this, ctx);
@@ -217,6 +221,7 @@ Earth.prototype.draw = function(ctx) {
 
 function EvilAliens() {
     GameEngine.call(this);
+    this.showOutlines = true;
 }
 EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
@@ -231,7 +236,7 @@ EvilAliens.prototype.update = function() {
     GameEngine.prototype.update.call(this);
     
     if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
-        this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
+        this.addEntity(new Alien(this, this.ctx.canvas.width, Math.floor(Math.random() * Math.PI * 2)));
         this.lastAlienAddedAt = this.timer.gameTime;
     }
 }

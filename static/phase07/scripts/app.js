@@ -191,18 +191,7 @@ Entity.prototype.outsideScreen = function() {
         this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight));
 }
 
-function Alien(game, radial_distance, angle) {
-    Entity.call(this, game);
-    this.radial_distance = radial_distance;
-    this.angle = angle;
-    this.speed = 100;
-    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'));
-    this.radius = this.sprite.height/2;
-}
-Alien.prototype = new Entity();
-Alien.prototype.constructor = Alien;
-
-Alien.prototype.rotateAndCache = function(image) {
+Entity.prototype.rotateAndCache = function(image) {
     var offscreenCanvas = document.createElement('canvas');
     var size = Math.max(image.width, image.height);
     offscreenCanvas.width = size;
@@ -211,7 +200,6 @@ Alien.prototype.rotateAndCache = function(image) {
     offscreenCtx.save();
     offscreenCtx.translate(size/2, size/2);
     offscreenCtx.rotate(this.angle + Math.PI/2);
-    offscreenCtx.translate(0,0);
     offscreenCtx.drawImage(image, -(image.width/2), -(image.height/2));
     offscreenCtx.restore();
     //offscreenCtx.strokeStyle = "red";
@@ -219,9 +207,25 @@ Alien.prototype.rotateAndCache = function(image) {
     return offscreenCanvas;
 }
 
-Alien.prototype.update = function() {
+function Alien(game, radial_distance, angle) {
+    Entity.call(this, game);
+    this.radial_distance = radial_distance;
+    this.angle = angle;
+    this.speed = 100;
+    this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'));
+    this.radius = this.sprite.height/2;
+    this.updatePosition();
+}
+Alien.prototype = new Entity();
+Alien.prototype.constructor = Alien;
+
+Alien.prototype.updatePosition = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
     this.y = this.radial_distance * Math.sin(this.angle);
+}
+
+Alien.prototype.update = function() {
+    this.updatePosition();
     this.radial_distance -= this.speed * this.game.clockTick;
 
     Entity.prototype.update.call(this);
@@ -298,7 +302,7 @@ EvilAliens.prototype.update = function() {
     GameEngine.prototype.update.call(this);
     
     if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
-        this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
+        this.addEntity(new Alien(this, this.ctx.canvas.width, Math.floor(Math.random() * Math.PI * 2)));
         this.lastAlienAddedAt = this.timer.gameTime;
     }
 }
