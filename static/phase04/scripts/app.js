@@ -138,7 +138,6 @@ GameEngine.prototype.loop = function() {
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
-    this.click = null;
 }
 
 function Entity(game, x, y) {

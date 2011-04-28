@@ -1,0 +1,24 @@
+CACHE MANIFEST
+
+# version 5
+
+CACHE:
+scripts/app.js
+scripts/soundmanager2-nodebug-jsmin.js
+scripts/stats.js
+
+swf/soundmanager2_flash9.swf
+
+audio/alien_boom.mp3
+audio/bullet.mp3
+audio/bullet_boom.mp3
+
+img/alien-explosion.png
+img/alien.png
+img/bullet.png
+img/earth.png
+img/explosion.png
+img/sentry.png
+
+favicon.ico
+index.html
