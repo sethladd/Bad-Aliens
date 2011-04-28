@@ -189,18 +189,22 @@ GameEngine.prototype.start = function() {
 }
 
 GameEngine.prototype.startInput = function() {
-    var that = this;
-    this.ctx.canvas.addEventListener("click", function(e) {
+    var getXandY = function(e) {
         var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
-        that.click = {x:x, y:y};
+        return {x: x, y: y};
+    }
+    
+    var that = this;
+    
+    this.ctx.canvas.addEventListener("click", function(e) {
+        that.click = getXandY(e);
         e.stopPropagation();
         e.preventDefault();
     });
+    
     this.ctx.canvas.addEventListener("mousemove", function(e) {
-        var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
-        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
-        that.mouse = {x:x, y:y};
+        that.mouse = getXandY(e);
     });
 }
 
