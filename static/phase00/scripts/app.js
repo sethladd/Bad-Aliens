@@ -30,12 +30,12 @@ AssetManager.prototype.queueSound = function(id, path) {
     this.soundsQueue.push({id: id, path: path});
 }
 
-AssetManager.prototype.downloadAll = function(callback) {
+AssetManager.prototype.downloadAll = function(downloadCallback) {
     if (this.downloadQueue.length === 0 && this.soundsQueue.length === 0) {
-        callback();
+        downloadCallback();
     }
     
-    this.downloadSounds(callback);
+    this.downloadSounds(downloadCallback);
     
     for (var i = 0; i < this.downloadQueue.length; i++) {
         var path = this.downloadQueue[i];
@@ -45,26 +45,26 @@ AssetManager.prototype.downloadAll = function(callback) {
             console.log(this.src + ' is loaded');
             that.successCount += 1;
             if (that.isDone()) {
-                callback();
+                downloadCallback();
             }
-        });
+        }, false);
         img.addEventListener("error", function() {
             that.errorCount += 1;
             if (that.isDone()) {
-                callback();
+                downloadCallback();
             }
-        });
+        }, false);
         img.src = path;
         this.cache[path] = img;
     }
 }
 
-AssetManager.prototype.downloadSounds = function(callback) {
+AssetManager.prototype.downloadSounds = function(soundsCallback) {
     var that = this;
     soundManager.onready(function() {
         console.log('soundManager ready');
         for (var i = 0; i < that.soundsQueue.length; i++) {
-            that.downloadSound(that.soundsQueue[i].id, that.soundsQueue[i].path, callback);
+            that.downloadSound(that.soundsQueue[i].id, that.soundsQueue[i].path, soundsCallback);
         }
     });
     soundManager.ontimeout(function() {
@@ -72,7 +72,7 @@ AssetManager.prototype.downloadSounds = function(callback) {
     });
 }
 
-AssetManager.prototype.downloadSound = function(id, path, callback) {
+AssetManager.prototype.downloadSound = function(id, path, soundsCallback) {
     var that = this;
     this.cache[path] = soundManager.createSound({
         id: id,
@@ -82,7 +82,7 @@ AssetManager.prototype.downloadSound = function(id, path, callback) {
             console.log(this.url + ' is loaded');
             that.successCount += 1;
             if (that.isDone()) {
-                callback();
+                soundsCallback();
             }
         }
     });
@@ -169,7 +169,6 @@ function GameEngine() {
 }
 
 GameEngine.prototype.init = function(ctx) {
-    console.log('game initialized');
     this.ctx = ctx;
     this.surfaceWidth = this.ctx.canvas.width;
     this.surfaceHeight = this.ctx.canvas.height;
@@ -177,18 +176,23 @@ GameEngine.prototype.init = function(ctx) {
     this.halfSurfaceHeight = this.surfaceHeight/2;
     this.startInput();
     document.body.appendChild(this.stats.domElement);
+    
+    console.log('game initialized');
 }
 
 GameEngine.prototype.start = function() {
     console.log("starting game");
     var that = this;
     (function gameLoop() {
+        console.log('loop2');
         that.loop();
         requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
 }
 
 GameEngine.prototype.startInput = function() {
+    console.log('Starting input');
+    
     var getXandY = function(e) {
         var x =  e.clientX - that.ctx.canvas.getBoundingClientRect().left - (that.ctx.canvas.width/2);
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top - (that.ctx.canvas.height/2);
@@ -199,28 +203,28 @@ GameEngine.prototype.startInput = function() {
     
     this.ctx.canvas.addEventListener("click", function(e) {
         that.click = getXandY(e);
-        e.stopPropagation();
-        e.preventDefault();
-    });
+    }, false);
     
     this.ctx.canvas.addEventListener("mousemove", function(e) {
         that.mouse = getXandY(e);
-    });
+    }, false);
+    
+    console.log('Input started');
 }
 
 GameEngine.prototype.addEntity = function(entity) {
     this.entities.push(entity);
 }
 
-GameEngine.prototype.draw = function(callback) {
+GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
     this.ctx.translate(this.ctx.canvas.width/2, this.ctx.canvas.height/2);
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
-    if (callback) {
-        callback(this);
+    if (drawCallback) {
+        drawCallback(this);
     }
     this.ctx.restore();
 }
@@ -244,11 +248,13 @@ GameEngine.prototype.update = function() {
 }
 
 GameEngine.prototype.loop = function() {
+    console.log('start loop');
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
     this.click = null;
     this.stats.update();
+    console.log('done loop');
 }
 
 function Entity(game, x, y) {
@@ -306,13 +312,18 @@ function Alien(game, radial_distance, angle) {
     this.speed = 100;
     this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'), this.angle);
     this.radius = this.sprite.height/2;
+    this.setCoords();
 }
 Alien.prototype = new Entity();
 Alien.prototype.constructor = Alien;
 
-Alien.prototype.update = function() {
+Alien.prototype.setCoords = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
     this.y = this.radial_distance * Math.sin(this.angle);
+}
+
+Alien.prototype.update = function() {
+    this.setCoords();
     this.radial_distance -= this.speed * this.game.clockTick;
 
     if (this.hitPlanet()) {
@@ -515,8 +526,6 @@ EvilAliens.prototype.start = function() {
 }
 
 EvilAliens.prototype.update = function() {
-    GameEngine.prototype.update.call(this);
-    
     if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
         this.addEntity(new Alien(this, this.ctx.canvas.width, Math.random() * Math.PI * 180));
         this.lastAlienAddedAt = this.timer.gameTime;
@@ -525,6 +534,8 @@ EvilAliens.prototype.update = function() {
     if (this.score <= 0) {
         // show game over screen
     }
+    
+    GameEngine.prototype.update.call(this);
 }
 
 EvilAliens.prototype.draw = function() {

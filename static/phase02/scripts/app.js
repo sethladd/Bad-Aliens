@@ -24,13 +24,13 @@ AssetManager.prototype.downloadAll = function(callback) {
             if (that.isDone()) {
                 callback();
             }
-        });
+        }, false);
         img.addEventListener("error", function() {
             that.errorCount += 1;
             if (that.isDone()) {
                 callback();
             }
-        });
+        }, false);
         img.src = path;
         this.cache[path] = img;
     }

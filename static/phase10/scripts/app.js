@@ -47,13 +47,13 @@ AssetManager.prototype.downloadAll = function(callback) {
             if (that.isDone()) {
                 callback();
             }
-        });
+        }, false);
         img.addEventListener("error", function() {
             that.errorCount += 1;
             if (that.isDone()) {
                 callback();
             }
-        });
+        }, false);
         img.src = path;
         this.cache[path] = img;
     }
@@ -199,11 +199,11 @@ GameEngine.prototype.startInput = function() {
         that.click = getXandY(e);
         e.stopPropagation();
         e.preventDefault();
-    });
+    }, false);
     
     this.ctx.canvas.addEventListener("mousemove", function(e) {
         that.mouse = getXandY(e);
-    });
+    }, false);
 }
 
 GameEngine.prototype.addEntity = function(entity) {
@@ -269,9 +269,11 @@ Entity.prototype.draw = function(ctx) {
 }
 
 Entity.prototype.drawSpriteCentered = function(ctx) {
-    var x = this.x - this.sprite.width/2;
-    var y = this.y - this.sprite.height/2;
-    ctx.drawImage(this.sprite, x, y);
+    if (this.sprite && this.x && this.y) {
+        var x = this.x - this.sprite.width/2;
+        var y = this.y - this.sprite.height/2;
+        ctx.drawImage(this.sprite, x, y);
+    }
 }
 
 Entity.prototype.outsideScreen = function() {
@@ -302,18 +304,18 @@ function Alien(game, radial_distance, angle) {
     this.speed = 100;
     this.sprite = this.rotateAndCache(ASSET_MANAGER.getAsset('img/alien.png'), this.angle);
     this.radius = this.sprite.height/2;
-    this.updatePosition();
+    this.setCoords();
 }
 Alien.prototype = new Entity();
 Alien.prototype.constructor = Alien;
 
-Alien.prototype.updatePosition = function() {
+Alien.prototype.setCoords = function() {
     this.x = this.radial_distance * Math.cos(this.angle);
     this.y = this.radial_distance * Math.sin(this.angle);
 }
 
 Alien.prototype.update = function() {
-    this.updatePosition();
+    this.setCoords();
     this.radial_distance -= this.speed * this.game.clockTick;
     
     Entity.prototype.update.call(this);
@@ -462,12 +464,12 @@ EvilAliens.prototype.start = function() {
 }
 
 EvilAliens.prototype.update = function() {
-    GameEngine.prototype.update.call(this);
-    
     if (this.lastAlienAddedAt == null || (this.timer.gameTime - this.lastAlienAddedAt) > 1) {
         this.addEntity(new Alien(this, this.ctx.canvas.width, Math.floor(Math.random() * Math.PI * 2)));
         this.lastAlienAddedAt = this.timer.gameTime;
     }
+    
+    GameEngine.prototype.update.call(this);
 }
 
 EvilAliens.prototype.draw = function() {
