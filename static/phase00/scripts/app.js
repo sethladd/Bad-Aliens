@@ -184,7 +184,6 @@ GameEngine.prototype.start = function() {
     console.log("starting game");
     var that = this;
     (function gameLoop() {
-        console.log('loop2');
         that.loop();
         requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
@@ -248,13 +247,11 @@ GameEngine.prototype.update = function() {
 }
 
 GameEngine.prototype.loop = function() {
-    console.log('start loop');
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
     this.click = null;
     this.stats.update();
-    console.log('done loop');
 }
 
 function Entity(game, x, y) {
@@ -472,7 +469,6 @@ BulletExplosion.prototype.update = function() {
     for (var i = 0; i < this.game.entities.length; i++) {
         var alien = this.game.entities[i];
         if (alien instanceof Alien && this.isCaughtInExplosion(alien)) {
-            console.log("hit!");
             this.game.score += 10;
             alien.explode();
         }
