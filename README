@@ -1,3 +1,8 @@
+WARNING: THIS GAME IS DEPRECATED.
+
+This code is no longer maintained. Certain aspects of it (like, using SoundManager2) are no longer
+the right way to do it. This code is left here for posterity only.
+
 Example HTML5 Game for Google IO Presentation.
 
 # Credits
